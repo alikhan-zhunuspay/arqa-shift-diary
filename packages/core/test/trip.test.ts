@@ -79,3 +79,18 @@ describe("sameTrip", () => {
     expect(sameTrip(valid as never, { ...valid, amount: 2500 } as never)).toBe(false);
   });
 });
+
+describe("сообщения об ошибках — по-русски и по делу", () => {
+  it("пустая сумма (NaN из формы) — понятный текст, а не сообщение zod", () => {
+    expect(issuesOf({ ...valid, amount: Number.NaN })).toContainEqual({ field: "amount", message: "Укажите сумму" });
+    expect(issuesOf({ ...valid, amount: "2400" })).toContainEqual({ field: "amount", message: "Укажите сумму" });
+  });
+
+  it("поездка дольше 12 часов отклоняется", () => {
+    expect(issuesOf({ ...valid, end: "2026-10-01T20:11:00+05:00" })).toContainEqual({
+      field: "end",
+      message: "Поездка не может длиться дольше 12 часов",
+    });
+    expect(parseTrip({ ...valid, end: "2026-10-01T20:10:00+05:00" }).ok).toBe(true);
+  });
+});

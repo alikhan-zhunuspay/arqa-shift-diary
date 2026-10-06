@@ -6,3 +6,4 @@ dist/
 .env
 .DS_Store
 web-build/
+.claude/

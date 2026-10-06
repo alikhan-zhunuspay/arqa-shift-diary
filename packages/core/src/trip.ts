@@ -4,7 +4,10 @@ import { z } from "zod";
  * Суммы храним целыми тенге: без float никаких 0.1 + 0.2.
  * Если понадобятся тиыны — меняем единицу, а не тип.
  */
-const money = z.number().int("Сумма должна быть целым числом тенге");
+const money = (required: string) => z.number({ error: required }).int("Только целое число тенге");
+
+/** Поездка дольше 12 часов — почти наверняка ошибка ввода (перепутаны часы или день). */
+export const MAX_TRIP_HOURS = 12;
 
 /** ISO 8601 с явным смещением: "2026-10-01T08:10:00+05:00" или "...Z". */
 const isoDateTime = z.iso.datetime({ offset: true, message: "Ожидается дата ISO 8601 со смещением, например 2026-10-01T08:10:00+05:00" });
@@ -17,14 +20,17 @@ export const tripInputSchema = z
     id: z.string().trim().min(1, "id обязателен").max(64, "id не длиннее 64 символов"),
     start: isoDateTime,
     end: isoDateTime,
-    amount: money.positive("Сумма должна быть больше 0"),
+    amount: money("Укажите сумму").positive("Сумма должна быть больше 0"),
     payment: z.enum(PAYMENT_METHODS, { message: "Способ оплаты: cash или card" }),
-    commission: money.nonnegative("Комиссия не может быть отрицательной"),
+    commission: money("Укажите комиссию").nonnegative("Комиссия не может быть отрицательной"),
   })
   .strict()
   .superRefine((trip, ctx) => {
-    if (Date.parse(trip.end) <= Date.parse(trip.start)) {
+    const durationMs = Date.parse(trip.end) - Date.parse(trip.start);
+    if (durationMs <= 0) {
       ctx.addIssue({ code: "custom", path: ["end"], message: "Окончание должно быть позже начала" });
+    } else if (durationMs > MAX_TRIP_HOURS * 3_600_000) {
+      ctx.addIssue({ code: "custom", path: ["end"], message: `Поездка не может длиться дольше ${MAX_TRIP_HOURS} часов` });
     }
     if (trip.commission > trip.amount) {
       ctx.addIssue({ code: "custom", path: ["commission"], message: "Комиссия не может превышать сумму поездки" });
