@@ -1,14 +1,21 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
 import { isValidDay, parseTrip, summarize } from "@shift-diary/core";
 import type { TripRepository } from "./repository";
 
-export type AppOptions = { repo: TripRepository; logger?: boolean };
+export type AppOptions = {
+  repo: TripRepository;
+  logger?: boolean;
+  /** Папка с веб-сборкой клиента (expo export). Если задана — сайт и API живут по одному адресу. */
+  webDir?: string;
+};
 
-export function buildApp({ repo, logger = false }: AppOptions): FastifyInstance {
+export function buildApp({ repo, logger = false, webDir }: AppOptions): FastifyInstance {
   const app = Fastify({ logger });
 
   void app.register(cors, { origin: true });
+  if (webDir) void app.register(fastifyStatic, { root: webDir });
 
   // Единый формат ошибок, в т. ч. для битого JSON и неизвестных маршрутов.
   app.setErrorHandler((error: { statusCode?: number; message: string }, request, reply) => {
@@ -19,7 +26,11 @@ export function buildApp({ repo, logger = false }: AppOptions): FastifyInstance 
       message: status >= 500 ? "Внутренняя ошибка сервера" : error.message,
     });
   });
-  app.setNotFoundHandler((_request, reply) => reply.status(404).send({ error: "not_found", message: "Маршрут не найден" }));
+  app.setNotFoundHandler((request, reply) => {
+    // Клиент — одностраничное приложение: любые не-API адреса отдаём его index.html.
+    if (webDir && request.method === "GET" && !request.url.startsWith("/api/")) return reply.sendFile("index.html");
+    return reply.status(404).send({ error: "not_found", message: "Маршрут не найден" });
+  });
 
   app.get("/health", async () => ({ ok: true }));
 

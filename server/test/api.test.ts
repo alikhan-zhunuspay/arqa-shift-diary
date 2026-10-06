@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { buildApp } from "../src/app";
 import { TripRepository } from "../src/repository";
 import { seedFromFile } from "../src/seed";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -193,5 +193,19 @@ describe("загрузка из файла", () => {
     const second = seedFromFile(repo, file);
     expect(second).toEqual({ created: 0, replayed: first.created, rejected: [] });
     expect(repo.tripsByDay("2026-10-01").map((t) => t.id)).toEqual(["t1", "t2"]);
+  });
+});
+
+describe("раздача веб-версии", () => {
+  it("отдаёт index.html на любые не-API адреса, API — как раньше", async () => {
+    const webDir = mkdtempSync(join(tmpdir(), "shift-web-"));
+    writeFileSync(join(webDir, "index.html"), "<!doctype html><title>Дневник смен</title>");
+    const web = buildApp({ repo, webDir });
+
+    expect((await web.inject({ url: "/" })).body).toContain("Дневник смен");
+    expect((await web.inject({ url: "/any/client/route" })).body).toContain("Дневник смен");
+    expect((await web.inject({ url: "/api/days/2026-10-01" })).json()).toHaveProperty("summary");
+    expect((await web.inject({ url: "/api/unknown" })).statusCode).toBe(404);
+    await web.close();
   });
 });

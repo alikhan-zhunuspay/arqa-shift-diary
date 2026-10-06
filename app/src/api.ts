@@ -25,12 +25,14 @@ export class ApiError extends Error {
 }
 
 /**
- * Адрес API: явный EXPO_PUBLIC_API_URL, иначе тот же хост, с которого Metro раздаёт бандл
- * (на реальном телефоне localhost — это сам телефон, а не ноутбук).
+ * Адрес API: явный EXPO_PUBLIC_API_URL; в собранной веб-версии — тот же адрес, что у сайта;
+ * в разработке — хост, с которого Metro раздаёт бандл (на телефоне localhost — это сам телефон).
  */
 function resolveBaseUrl(): string {
   const explicit = process.env.EXPO_PUBLIC_API_URL;
   if (explicit) return explicit.replace(/\/$/, "");
+  // Собранная веб-версия раздаётся тем же сервером, что и API, — ходим на свой же адрес.
+  if (Platform.OS === "web" && !__DEV__) return "";
   const host = Constants.expoConfig?.hostUri?.split(":")[0];
   if (host && Platform.OS !== "web") return `http://${host}:3000`;
   if (Platform.OS === "android" && !host) return "http://10.0.2.2:3000";

@@ -30,6 +30,19 @@ function ShiftDiary() {
   const data = state.data;
   const timeZone = data?.timeZone ?? DEFAULT_TIME_ZONE;
 
+  // Первое открытие: если сегодня смены не было, показываем последний день с поездками,
+  // а не пустой чек. Дальше дни листает только сам пользователь.
+  const firstLoad = useRef(true);
+  useEffect(() => {
+    if (!firstLoad.current || state.status !== "ready") return;
+    firstLoad.current = false;
+    const previous = state.data.neighbours.previous;
+    if (state.data.date === today && state.data.trips.length === 0 && previous) {
+      setDate(previous);
+      show(`Сегодня поездок нет — показан ${dayShort(previous)}`);
+    }
+  }, [state, today, show]);
+
   const header = (
     <View style={styles.header}>
       <DayHeader

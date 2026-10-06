@@ -1,12 +1,20 @@
 {
   "name": "arqa-shift-diary",
   "private": true,
-  "workspaces": ["packages/*", "server", "app"],
+  "workspaces": [
+    "packages/*",
+    "server",
+    "app"
+  ],
   "scripts": {
     "dev:server": "npm run dev -w server",
     "dev:app": "npm run start -w app",
+    "build": "npm run build:web -w app",
+    "start": "npm run start -w server",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
-  "engines": { "node": ">=22.13" }
+  "engines": {
+    "node": ">=22.13"
+  }
 }

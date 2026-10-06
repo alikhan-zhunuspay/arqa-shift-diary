@@ -1,0 +1,15 @@
+# Живое демо на Render (бесплатный план): один сервис отдаёт и сайт, и API.
+services:
+  - type: web
+    name: arqa-shift-diary
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      # База в памяти: при каждом перезапуске демо начинается с data/trips.json.
+      - key: DB_PATH
+        value: ":memory:"
