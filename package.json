@@ -12,7 +12,9 @@
     "build": "npm run build:web -w app",
     "start": "npm run start -w server",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:worker": "npm run build && npm run dev:worker -w server",
+    "deploy": "npm run build && npm run db:migrate -w server && npm run deploy -w server"
   },
   "engines": {
     "node": ">=22.13"

@@ -1,9 +1,11 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { serve } from "@hono/node-server";
 import { DEFAULT_TIME_ZONE, isValidTimeZone } from "@shift-diary/core";
-import { buildApp } from "./app";
-import { TripRepository } from "./repository";
-import { seedFromFile } from "./seed";
+import { createApp } from "./app";
+import { SqliteStore } from "./sqlite-store";
+import { seedTrips } from "./seed";
+import { serveWeb } from "./web";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -15,20 +17,23 @@ const WEB_DIR = process.env.WEB_DIR ?? fileURLToPath(new URL("../../app/dist", i
 
 if (!isValidTimeZone(TIME_ZONE)) throw new Error(`Неизвестный часовой пояс: ${TIME_ZONE}`);
 
-const repo = new TripRepository(DB_PATH, TIME_ZONE);
-const app = buildApp({ repo, logger: true, webDir: existsSync(WEB_DIR) ? WEB_DIR : undefined });
+const store = new SqliteStore(DB_PATH, TIME_ZONE);
+const app = createApp(store);
+if (existsSync(WEB_DIR)) serveWeb(app, WEB_DIR);
 
 if (SEED_FILE !== "none") {
-  const report = seedFromFile(repo, SEED_FILE);
-  app.log.info({ seed: SEED_FILE, ...report }, "Загружены поездки из файла");
+  const report = await seedTrips(store, JSON.parse(readFileSync(SEED_FILE, "utf8")));
+  console.log(`Загружены поездки из ${SEED_FILE}:`, report);
 }
 
-const shutdown = async () => {
-  await app.close();
-  repo.close();
+const server = serve({ fetch: app.fetch, port: PORT, hostname: HOST }, (info) => {
+  console.log(`API: http://localhost:${info.port}${existsSync(WEB_DIR) ? " (вместе с веб-версией)" : ""}`);
+});
+
+const shutdown = () => {
+  server.close();
+  store.close();
   process.exit(0);
 };
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-
-await app.listen({ port: PORT, host: HOST });
