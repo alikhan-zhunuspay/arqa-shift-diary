@@ -40,10 +40,7 @@ export function pluralTrips(n: number): string {
   return "поездок";
 }
 
-/**
- * Собирает ISO-дату из дня и времени "HH:MM" в смещении часового пояса.
- * Если окончание по часам меньше начала — поездка перешла через полночь.
- */
+/** Собирает ISO-дату из дня, времени "HH:MM" и смещения: "2026-10-01T08:10:00+05:00". */
 export function buildIso(day: string, hhmm: string, offset: string): string {
   return `${day}T${hhmm}:00${offset}`;
 }

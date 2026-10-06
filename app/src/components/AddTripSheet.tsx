@@ -35,7 +35,7 @@ export function AddTripSheet({ visible, day, timeZone, onClose, onCreated }: Pro
   const [commissionTouched, setCommissionTouched] = useState(false);
   // id поездки создаётся один раз на открытие формы и не меняется при повторных нажатиях
   // и автоповторах: так сервер узнаёт повтор и не создаёт дубль.
-  const idRef = useRef<string>(randomUUID());
+  const idRef = useRef<string>("");
 
   useEffect(() => {
     if (visible) {
