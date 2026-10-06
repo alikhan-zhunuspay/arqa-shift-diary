@@ -16,5 +16,5 @@ run_worker_first = ["/api/*", "/health"]
 [[d1_databases]]
 binding = "DB"
 database_name = "arqa-shift-diary"
-database_id = "00000000-0000-0000-0000-000000000000" # заменяется после `wrangler d1 create`
+database_id = "c0a92d11-b62f-42a6-aacb-b851aab162d9"
 migrations_dir = "migrations"
