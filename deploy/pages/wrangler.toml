@@ -1,0 +1,14 @@
+# Живое демо на Cloudflare Pages: адрес arqa-shift-diary.pages.dev без поддомена аккаунта.
+# Веб-сборка + _worker.js (API из server/src/worker.ts) + та же база D1.
+name = "arqa-shift-diary"
+pages_build_output_dir = "../../app/dist"
+compatibility_date = "2026-10-01"
+
+[vars]
+TIME_ZONE = "Asia/Almaty"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arqa-shift-diary"
+database_id = "c0a92d11-b62f-42a6-aacb-b851aab162d9"
+migrations_dir = "../../server/migrations"

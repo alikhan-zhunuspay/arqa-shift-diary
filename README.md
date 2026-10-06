@@ -2,7 +2,7 @@
 
 Тестовое задание для arqa: сервер отдаёт поездки и сводку за день, мобильное приложение показывает её и даёт добавить поездку. Повторная отправка поездки не создаёт дубль.
 
-**Живое демо: https://arqa-shift-diary.buta-development.workers.dev** — открывается в браузере, в том числе с телефона. Работает на Cloudflare (Workers + D1), поездки можно добавлять: они сохраняются в базе демо.
+**Живое демо: https://arqa-shift-diary.pages.dev** — открывается в браузере, в том числе с телефона. Работает на Cloudflare (Pages + D1), поездки можно добавлять: они сохраняются в базе демо.
 
 **Стек:** TypeScript целиком. Сервер на Hono: один и тот же HTTP-код работает локально в Node поверх SQLite (встроенный `node:sqlite`) и в Cloudflare Workers поверх D1. Клиент на Expo (React Native), работает на iOS, Android и в браузере. Общий пакет `@shift-diary/core` с расчётом сводки и правилами валидации используют и сервер, и клиент.
 
@@ -31,12 +31,12 @@ npm run dev:app         # Expo: w — браузер, i — iOS-симулято
 
 ### Cloudflare (демо)
 
-Конфиг — [server/wrangler.toml](server/wrangler.toml): Worker отвечает на `/api/*`, веб-версию раздаёт Cloudflare Static Assets, база — D1 с той же миграцией, что и локально ([server/migrations](server/migrations)). Пустая база при первом запросе заполняется из `data/trips.json`.
+Демо выложено на Cloudflare Pages ([deploy/pages/wrangler.toml](deploy/pages/wrangler.toml)): веб-сборка плюс `_worker.js`, собранный из [server/src/worker.ts](server/src/worker.ts). Worker отвечает на `/api/*`, остальные адреса отдают файлы веб-версии. База — D1 с той же миграцией, что и локально ([server/migrations](server/migrations)). Пустая база при первом запросе заполняется из `data/trips.json`. Тот же Worker можно выложить и как обычный Cloudflare Worker ([server/wrangler.toml](server/wrangler.toml)).
 
 ```bash
 npm run dev:worker      # Worker локально с локальной D1: http://localhost:8787
-npx wrangler d1 create arqa-shift-diary   # один раз; database_id вписать в server/wrangler.toml
-npm run deploy          # сборка веб-версии, миграция D1, выкладка Worker
+npx wrangler d1 create arqa-shift-diary   # один раз; database_id вписать в оба wrangler.toml
+npm run deploy          # сборка веб-версии и Worker, миграция D1, выкладка на Pages
 ```
 
 ## Что сделано

@@ -14,7 +14,8 @@
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "dev:worker": "npm run build && npm run dev:worker -w server",
-    "deploy": "npm run build && npm run db:migrate -w server && npm run deploy -w server"
+    "deploy": "npm run build && npm run build:worker && npm run db:migrate -w server && cd deploy/pages && wrangler pages deploy --project-name arqa-shift-diary --branch main",
+    "build:worker": "esbuild server/src/worker.ts --bundle --format=esm --platform=neutral --main-fields=module,main --minify --outfile=app/dist/_worker.js"
   },
   "engines": {
     "node": ">=22.13"
